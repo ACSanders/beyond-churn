@@ -27,7 +27,7 @@ This project is being developed around several related questions:
 1. Who is likely to churn?
 2. Whose outcome is likely to change because of a retention intervention?
 3. How different are churn risk and estimated treatment response?
-4. Does targeting high-risk customers produce the same value as targeting high-uplift customers?
+4. Does targeting high-risk customers produce the same incremental value as targeting high-uplift customers?
 5. How should targeting strategies be evaluated when individual counterfactual outcomes cannot be observed?
 6. How does intervention capacity affect the optimal targeting policy?
 
@@ -51,21 +51,21 @@ The project will progressively explore:
 * budget-constrained intervention strategies
 * causal decision-making
 
-The emphasis is not on building the largest collection of algorithms.
+The emphasis is not on building the largest possible collection of algorithms.
 
 The goal is to understand how predictive performance, causal estimation, and decision quality differ.
 
 ## Central idea
 
-A useful way to think about the project is:
+A useful way to think about the project is as three related but distinct problems.
 
 ### Prediction
 
 Estimate:
 
-[
+$$
 P(\text{churn} \mid X)
-]
+$$
 
 This answers:
 
@@ -75,12 +75,9 @@ This answers:
 
 Estimate a conditional treatment effect:
 
-[
-\tau(x)
-=======
-
-E[Y(1)-Y(0)\mid X=x]
-]
+$$
+\tau(x) = E[Y(1) - Y(0) \mid X = x]
+$$
 
 This answers:
 
@@ -90,9 +87,9 @@ This answers:
 
 Use estimated treatment response to construct a targeting policy:
 
-[
+$$
 \pi(x)
-]
+$$
 
 This answers:
 
@@ -102,13 +99,13 @@ These are related problems, but they are not the same problem.
 
 A central theme of this project is therefore:
 
-[
+$$
 \text{Prediction quality}
 \neq
 \text{Causal estimation quality}
 \neq
 \text{Decision quality}
-]
+$$
 
 ## Planned analyses
 
@@ -119,7 +116,7 @@ The project will initially compare several targeting strategies, including:
 * targeting customers with the highest estimated treatment effect
 * potentially targeting customers based on expected incremental economic value
 
-Policies will be evaluated at multiple intervention capacities such as the top:
+Policies will be evaluated at multiple intervention capacities, such as targeting the top:
 
 * 5%
 * 10%
@@ -129,23 +126,29 @@ Policies will be evaluated at multiple intervention capacities such as the top:
 
 of eligible customers.
 
+One of the central comparisons will be:
+
+> **If we can intervene on only a limited share of customers, is it better to target those most likely to churn or those most likely to respond to treatment?**
+
 ## Causal evaluation
 
-Unlike a synthetic simulation, a real experiment does not reveal both potential outcomes for an individual customer.
+Unlike a synthetic simulation, a real randomized experiment does not reveal both potential outcomes for an individual customer.
 
 For customer (i), we observe either:
 
-[
+$$
 Y_i(1)
-]
+$$
 
 or:
 
-[
+$$
 Y_i(0)
-]
+$$
 
 but not both.
+
+This means the true individual treatment effect cannot be directly observed.
 
 The project will therefore focus on evaluation methods that are usable in real applied causal-ML settings, including:
 
@@ -155,26 +158,103 @@ The project will therefore focus on evaluation methods that are usable in real a
 * AUUC
 * out-of-sample treatment-effect evaluation
 * policy value
+* budget-constrained policy evaluation
 * doubly robust policy evaluation
 
 This is an intentional part of the project design rather than a limitation to be hidden.
 
 ## Planned modeling progression
 
-The project will be developed incrementally.
+The project will be developed incrementally so that each method is understood before more advanced techniques are introduced.
 
-### Phase 1 — Churn risk
+### Phase 1: Churn risk
 
-Initial predictive baselines:
+Build predictive baselines for the question:
+
+> Who is likely to churn?
+
+Initial models:
 
 * logistic regression
 * CatBoost
 
-Evaluation will include discrimination and probability calibration.
+Evaluation will include:
 
-### Phase 2 — Treatment effects
+* ROC-AUC
+* PR-AUC
+* log loss
+* Brier score
+* calibration curves
+* probability calibration diagnostics
 
-Begin with interpretable causal baselines such as a T-Learner before progressing to more advanced estimators.
+The goal is not simply to maximize classifier performance, but to establish a strong predictive baseline against which causal targeting can later be compared.
+
+### Phase 2: Causal fundamentals
+
+Introduce the potential-outcomes framework and treatment-effect estimation.
+
+The initial focus will be on concepts such as:
+
+* average treatment effect
+* conditional average treatment effect
+* treatment and control response surfaces
+* heterogeneous treatment effects
+
+The first practical uplift model will likely be a T-Learner because it makes the underlying logic transparent.
+
+A T-Learner estimates separate response models:
+
+$$
+\hat{\mu}_0(x)
+==============
+
+E[Y \mid X=x, T=0]
+$$
+
+and:
+
+$$
+\hat{\mu}_1(x)
+==============
+
+E[Y \mid X=x, T=1]
+$$
+
+Then estimated uplift is:
+
+$$
+\hat{\tau}(x)
+=============
+
+## \hat{\mu}_1(x)
+
+\hat{\mu}_0(x)
+$$
+
+### Phase 3: Uplift evaluation
+
+Once treatment effects can be estimated, the project will evaluate whether the ranking produced by those estimates is useful.
+
+Potential analyses include:
+
+* uplift by predicted-effect decile
+* treatment/control differences within ranked groups
+* uplift curves
+* Qini curves
+* AUUC
+* top-k treatment strategies
+
+The important question is not merely:
+
+> Did the model predict treatment effects?
+
+It is:
+
+> Did the model rank customers in a way that produces more incremental retention when used for targeting?
+
+### Phase 4: More advanced causal ML
+
+After the uplift baseline is understood, the project may introduce more robust heterogeneous treatment-effect estimators.
 
 Potential methods include:
 
@@ -182,21 +262,174 @@ Potential methods include:
 * DRLearner
 * CausalForestDML
 
-### Phase 3 — Uplift evaluation
+The purpose of adding these methods is to determine whether more sophisticated causal estimators materially improve treatment-effect ranking or policy value.
 
-Evaluate whether customers ranked as highly responsive actually exhibit stronger incremental treatment effects in held-out experimental data.
+They will not be added solely for algorithmic complexity.
 
-### Phase 4 — Policy evaluation
+### Phase 5: Policy evaluation
 
-Translate predictions into intervention policies and compare their estimated incremental outcomes under constrained treatment budgets.
+Treatment-effect estimates will then be translated into actual intervention policies.
+
+For example:
+
+$$
+\pi_k(x)
+========
+
+\begin{cases}
+1, & \text{if customer } x \text{ is in the top } k% \text{ of the ranking} \
+0, & \text{otherwise}
+\end{cases}
+$$
+
+Policies may include:
+
+* no intervention
+* random targeting
+* churn-risk targeting
+* uplift targeting
+* economic-value targeting
+
+The central comparison will be between:
+
+$$
+\text{Random targeting}
+$$
+
+$$
+\text{Churn-risk targeting}
+$$
+
+$$
+\text{Uplift targeting}
+$$
+
+under identical intervention budgets.
+
+### Phase 6: Doubly robust policy evaluation
+
+Once basic policy evaluation is established, the project may add doubly robust approaches for estimating policy value.
+
+The goal will be to evaluate targeting strategies using information from both:
+
+* treatment assignment probabilities
+* outcome models
+
+This provides a more rigorous framework for estimating the incremental value of a learned policy on held-out experimental data.
 
 ## Data
 
 The initial project is planned around a public churn-uplift dataset containing treatment and control observations.
 
-The dataset selection, provenance, licensing, treatment definition, outcome definition, and experimental structure will be documented here once the initial data audit is complete.
+The leading candidate is a public telecom churn-uplift dataset associated with Orange Belgium.
 
-No proprietary employer data, code, features, experiments, business rules, or internal model results are used in this repository.
+Before modeling begins, the project will document:
+
+* dataset provenance
+* licensing
+* experimental design
+* treatment definition
+* outcome definition
+* feature definitions
+* sample size
+* treatment/control balance
+* class balance
+* missingness
+* evaluation constraints
+
+No proprietary employer data, code, internal feature definitions, experiments, thresholds, business rules, or confidential model results are used in this repository.
+
+## Why randomized treatment data matters
+
+A standard churn dataset can help estimate:
+
+$$
+P(\text{churn} \mid X)
+$$
+
+but that does not identify whether an intervention caused a customer to stay.
+
+With randomized treatment data, we can instead investigate the causal question:
+
+$$
+E[Y(1)-Y(0)\mid X=x]
+$$
+
+Randomization helps separate treatment response from ordinary differences between customers who happened to receive different actions.
+
+This makes the dataset suitable for studying not only prediction, but also treatment targeting and policy evaluation.
+
+## Risk is not persuadability
+
+One of the project's most important analyses will compare:
+
+* predicted churn risk
+* estimated treatment effect
+
+A high-risk customer may have little or no treatment response.
+
+A moderate-risk customer may be highly responsive.
+
+This means a strong churn classifier can still produce a poor intervention strategy if churn probability is treated as a proxy for persuadability.
+
+A flagship visualization will eventually compare:
+
+**Predicted churn risk**
+
+against:
+
+**Estimated treatment effect**
+
+to examine where these rankings agree and where they diverge.
+
+## From ranking to policy
+
+Ranking customers is only useful if it improves decisions.
+
+Suppose an organization can intervene on only 20% of customers.
+
+The project will compare the incremental outcomes produced by selecting that 20% using different policies.
+
+For example:
+
+$$
+\text{Top 20% by churn risk}
+$$
+
+versus:
+
+$$
+\text{Top 20% by estimated uplift}
+$$
+
+If the uplift-based policy generates a larger treatment/control improvement, that provides direct evidence that predictive risk and intervention value are different quantities.
+
+## Economic decision-making
+
+A later extension may incorporate customer value and intervention cost.
+
+For customer (i), estimated incremental value could take the form:
+
+$$
+\widehat{\text{Incremental Value}}_i
+====================================
+
+\hat{\tau}_i V_i - C_i
+$$
+
+where:
+
+* (\hat{\tau}_i) is estimated treatment effect
+* (V_i) is the value of retaining the customer
+* (C_i) is intervention cost
+
+This creates a further distinction between:
+
+* highest churn risk
+* highest uplift
+* highest expected economic value
+
+Economic modeling will be introduced only after the causal targeting framework is established.
 
 ## Repository structure
 
@@ -209,6 +442,7 @@ beyond-churn/
 ├── README.md
 ├── LICENSE
 ├── pyproject.toml
+├── data/
 ├── notebooks/
 │   ├── 01_data_understanding.ipynb
 │   ├── 02_churn_prediction.ipynb
@@ -218,10 +452,12 @@ beyond-churn/
 ├── src/
 │   └── beyond_churn/
 ├── tests/
-└── artifacts/
+├── artifacts/
+└── .github/
+    └── workflows/
 ```
 
-The exact structure will evolve with the project.
+The exact structure will evolve as the research stabilizes.
 
 ## Development philosophy
 
@@ -229,16 +465,40 @@ This project follows a few principles:
 
 * understand methods before adding complexity
 * start with strong, interpretable baselines
-* separate prediction from causal inference
-* evaluate decisions rather than only models
-* prefer out-of-sample evaluation
+* distinguish prediction from causal inference
+* distinguish causal estimation from policy quality
+* use out-of-sample evaluation
+* compare policies under identical treatment budgets
 * build reusable Python only after research logic stabilizes
 * add infrastructure when it solves a real problem
 * prioritize scientific clarity over resume keywords
 
-The project will not begin with reinforcement learning, large neural networks, elaborate MLOps infrastructure, or a dashboard.
+The project will not begin with:
+
+* reinforcement learning
+* neural networks
+* elaborate cloud infrastructure
+* large MLOps systems
+* dashboards
+* dozens of competing estimators
 
 Those components will only be introduced if the research problem eventually justifies them.
+
+## Planned technical stack
+
+Likely tools include:
+
+* Python
+* pandas
+* NumPy
+* scikit-learn
+* CatBoost
+* EconML
+* SciPy
+* matplotlib
+* pytest
+
+Additional dependencies will be added only when they serve a clear methodological or engineering purpose.
 
 ## Status
 
@@ -247,20 +507,38 @@ Those components will only be introduced if the research problem eventually just
 Current priorities:
 
 * [ ] Finalize the public dataset
-* [ ] Document the treatment and outcome definitions
+* [ ] Verify dataset provenance and licensing
+* [ ] Document treatment and outcome definitions
 * [ ] Audit treatment/control balance
-* [ ] Establish the train/test evaluation design
+* [ ] Inspect class balance and missingness
+* [ ] Establish train/test evaluation design
 * [ ] Build predictive churn baselines
-* [ ] Implement the first uplift baseline
-* [ ] Compare churn-risk and uplift rankings
-* [ ] Build policy-evaluation metrics
+* [ ] Evaluate probability calibration
+* [ ] Implement a T-Learner uplift baseline
+* [ ] Evaluate uplift across ranked customer groups
+* [ ] Implement uplift and Qini curves
+* [ ] Compare churn-risk and uplift targeting
+* [ ] Evaluate policies at multiple intervention budgets
+* [ ] Explore DRLearner and CausalForestDML
 * [ ] Add reusable modules and tests
-* [ ] Document results and methodological conclusions
+* [ ] Document methodological conclusions and results
 
 ## Long-term goal
 
-The goal of Beyond Churn is not to produce another churn-classification leaderboard.
+The goal of **Beyond Churn** is not to produce another churn-classification leaderboard.
 
 It is to investigate a more consequential question:
 
 > **If a model tells us who is likely to churn, does that actually tell us who we should intervene on?**
+
+More broadly, the project aims to demonstrate why:
+
+$$
+\text{Prediction quality}
+\neq
+\text{Causal estimation quality}
+\neq
+\text{Decision quality}
+$$
+
+and how experimental data and causal machine learning can help bridge those gaps.
