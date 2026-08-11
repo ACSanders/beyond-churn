@@ -386,45 +386,33 @@ The first heterogeneous treatment-effect model will be a T-Learner.
 
 A T-Learner fits separate response models for the control and treatment groups:
 
-$$
-\hat{\mu}_0(x)
-=
-\widehat{E}[Y \mid X=x, T=0]
-$$
+```math
+\hat{\mu}_0(x) = \widehat{E}[Y \mid X=x, T=0]
+```
 
 and
 
-$$
-\hat{\mu}_1(x)
-=
-\widehat{E}[Y \mid X=x, T=1]
-$$
+```math
+\hat{\mu}_1(x) = \widehat{E}[Y \mid X=x, T=1]
+```
 
 The estimated conditional treatment effect is then:
 
-$$
-\hat{\tau}(x)
-=
-\hat{\mu}_1(x)
--
-\hat{\mu}_0(x)
-$$
+```math
+\hat{\tau}(x) = \hat{\mu}_1(x) - \hat{\mu}_0(x)
+```
 
 Because the outcome is churn, beneficial treatment response corresponds to:
 
-$$
+```math
 \hat{\tau}(x) < 0
-$$
+```
 
 Equivalently, estimated retention uplift can be defined as:
 
-$$
-\hat{u}(x)
-=
-\hat{\mu}_0(x)
--
-\hat{\mu}_1(x)
-$$
+```math
+\hat{u}(x) = \hat{\mu}_0(x) - \hat{\mu}_1(x)
+```
 
 where larger values indicate a larger predicted reduction in churn.
 
