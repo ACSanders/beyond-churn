@@ -67,11 +67,9 @@ The predictive model in this project is intentionally trained on the control gro
 
 Estimate the conditional average treatment effect:
 
-$$
-\tau(x)
-=
-E[Y(1)-Y(0)\mid X=x]
-$$
+```math
+\tau(x) = E[Y(1)-Y(0)\mid X=x]
+```
 
 This answers:
 
@@ -79,17 +77,17 @@ This answers:
 
 Because $Y=1$ represents churn, a **negative treatment effect is favorable**:
 
-$$
+```math
 \tau(x) < 0
-$$
+```
 
 means treatment is estimated to reduce churn.
 
 For decision-making, it is often convenient to express this as expected retention uplift:
 
-$$
+```math
 u(x) = -\tau(x)
-$$
+```
 
 so that larger positive values correspond to larger estimated reductions in churn.
 
