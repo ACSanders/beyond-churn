@@ -27,4 +27,12 @@ data/raw/
 data/processed/
 
 # Local artifacts
-artifacts/
+artifacts/*
+!artifacts/catboost_churn_model.cbm
+!artifacts/catboost_churn_metadata.json
+
+# Generated local files
+
+.virtual_documents/
+catboost_info/
+notebooks/catboost_info/
