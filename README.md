@@ -528,14 +528,13 @@ Suppose an organization can intervene on only a fraction $k$ of eligible custome
 
 A targeting policy can be written as:
 
-$$
-\pi_k(x)
-=
+```math
+\pi_k(x) =
 \begin{cases}
 1, & \text{if } x \text{ is selected within the treatment budget} \\
 0, & \text{otherwise}
 \end{cases}
-$$
+```
 
 The project will compare policies such as:
 
@@ -600,11 +599,9 @@ A later extension may incorporate customer value and intervention cost.
 
 For customer $i$, estimated incremental economic value could take the form:
 
-$$
-\widehat{\text{Incremental Value}}_i
-=
-\hat{u}_i V_i - C_i
-$$
+```math
+\widehat{\text{Incremental Value}}_i = \hat{u}_i V_i - C_i
+```
 
 where:
 
