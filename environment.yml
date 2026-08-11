@@ -1,0 +1,28 @@
+name: beyond-churn
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.12
+  - numpy=2.4.6
+  - pandas=3.0.5
+  - scipy=1.15.3
+  - scikit-learn=1.9.0
+  - statsmodels=0.14.6
+  - matplotlib=3.11.1
+  - seaborn=0.13.2
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - pip
+
+  - pip:
+      - catboost==1.2.10
+      - shap==0.52.0
+      - openml==0.15.1
+      - econml==0.17.0
+      - dowhy==0.14
+      - causalml==0.15.5
+      - lightgbm==4.7.0
+      - xgboost==3.4.0
