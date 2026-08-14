@@ -12,15 +12,16 @@ This project asks a second question:
 
 Those are not always the same customers.
 
-A high-risk customer may be unlikely to change behavior, while a moderate-risk customer may be much more responsive to an intervention. The goal of this project is to compare those two ideas directly.
+A high-risk customer may be unlikely to change behavior, while a moderate-risk customer may be more responsive to an intervention. The goal of this project is to compare those two ideas directly and then evaluate what the targeting results mean in practice.
 
 ## What this project does
 
-The project uses a public randomized churn-uplift dataset from OpenML and moves through three stages:
+The project uses a public randomized churn-uplift dataset from OpenML and moves through four stages:
 
 1. **Understand the experiment and data**
 2. **Build and compare churn-risk models**
 3. **Compare churn-risk targeting with causal uplift models**
+4. **Evaluate uncertainty and simple business value**
 
 The main causal models are:
 
@@ -28,7 +29,7 @@ The main causal models are:
 - DRLearner
 - CausalForestDML
 
-The final comparison asks a practical question:
+The main decision question is:
 
 > **If we can only target part of the customer base, which ranking gives the strongest observed retention uplift?**
 
@@ -83,8 +84,6 @@ Held-out performance:
 | F1 | 0.165 |
 | F2 | 0.241 |
 
-The final classification threshold was selected using out-of-fold training predictions with a minimum recall requirement of 25%.
-
 The final LightGBM pipeline is saved in:
 
 ```text
@@ -109,24 +108,39 @@ Compares:
 - CausalForestDML
 - random targeting
 
-The churn-risk model continues to show strong ranking performance on the causal evaluation sample:
+The churn-risk model continued to rank customers well on the causal evaluation sample:
 
 | Metric | Result |
 |---|---:|
 | ROC AUC | 0.831 |
 | Average Precision | 0.173 |
 
-The causal models produce very different treatment-effect estimates.
+In the policy comparison, churn-risk targeting produced the highest observed retention uplift at every tested targeting level.
 
-In the policy comparison, churn-risk targeting produced the highest observed retention uplift at every tested targeting level. The largest point estimate appeared when targeting only the top 5% of customers.
+The causal models produced different treatment-effect estimates and different targeting results. T-Learner was consistently positive, DRLearner was less stable, and CausalForestDML was more conservative.
 
-T-Learner produced smaller but consistently positive uplift. DRLearner showed some strong targeting results but was less stable. CausalForestDML produced negative observed uplift at most of the smaller targeting levels.
+This does **not** mean churn risk and treatment response are the same thing. It shows that a causal model does not automatically produce the best targeting policy.
 
-Random targeting stayed close to zero and served as a useful benchmark.
+The evaluation scores used for the final policy analysis are saved in:
 
-These results do **not** mean churn risk and treatment response are the same thing. They show that a causal model does not automatically create a better targeting policy.
+```text
+artifacts/causal_eval_results.csv
+```
 
-The smaller targeting groups also contain relatively few customers, so the largest point estimates should be interpreted cautiously.
+### 04 — Policy value and uncertainty
+
+[`notebooks/04_policy_value_and_uncertainty.ipynb`](notebooks/04_policy_value_and_uncertainty.ipynb)
+
+This notebook takes the targeting results from Notebook 03 and asks two practical questions:
+
+- how uncertain are the policy estimates?
+- what could those results mean in business terms?
+
+Bootstrap confidence intervals show that the point estimates are noisy, especially for smaller targeting groups. All tested 95% confidence intervals include zero.
+
+The notebook also translates uplift into expected retained customers per 1,000 targeted and uses a simple hypothetical value example to show how treatment cost and customer value can change the decision.
+
+The business values are illustrative only. They are included to show how model results can be connected to a real decision.
 
 ## Main takeaway
 
@@ -138,9 +152,9 @@ Prediction and causal targeting answer different questions.
 
 A churn model estimates who is most at risk. A causal model estimates whose outcome may change because of treatment.
 
-In this dataset, the churn-risk ranking happened to produce the strongest observed targeting results.
+In this dataset, the churn-risk ranking produced the strongest observed targeting results. But the final uncertainty analysis also shows why point estimates alone are not enough.
 
-One key takeaway is that a good prediction model is not always the best decision model. Causal models also do not automatically produce better targeting. What matters is how well each approach performs for the actual decision we need to make.
+A useful retention policy needs to consider model performance, uncertainty, targeting scale, intervention cost, and the value of the outcome being changed.
 
 ## Repository structure
 
@@ -150,12 +164,14 @@ beyond-churn/
 ├── LICENSE
 ├── environment.yml
 ├── artifacts/
+│   ├── causal_eval_results.csv
 │   ├── lightgbm_churn_model.joblib
 │   └── lightgbm_churn_metadata.json
 └── notebooks/
     ├── 01_data_understanding.ipynb
     ├── 02_churn_prediction.ipynb
-    └── 03_causal_uplift_modeling.ipynb
+    ├── 03_causal_uplift_modeling.ipynb
+    └── 04_policy_value_and_uncertainty.ipynb
 ```
 
 ## Environment
@@ -178,21 +194,3 @@ Main libraries include:
 - OpenML
 - matplotlib
 - seaborn
-
-## Status
-
-The main notebook workflow is complete:
-
-- [x] data audit
-- [x] churn model comparison
-- [x] saved LightGBM pipeline
-- [x] T-Learner
-- [x] DRLearner
-- [x] CausalForestDML
-- [x] targeting-policy comparison
-
-Possible future work:
-
-- policy-value estimation with uncertainty
-- economic targeting using customer value and intervention cost
-- moving stable code into reusable modules
