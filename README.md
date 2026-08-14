@@ -19,7 +19,7 @@ A high-risk customer may be unlikely to change behavior, while a moderate-risk c
 The project uses a public randomized churn-uplift dataset from OpenML and moves through three stages:
 
 1. **Understand the experiment and data**
-2. **Build a churn-risk model**
+2. **Build and compare churn-risk models**
 3. **Compare churn-risk targeting with causal uplift models**
 
 The main causal models are:
@@ -61,28 +61,40 @@ Covers:
 
 [`notebooks/02_churn_prediction.ipynb`](notebooks/02_churn_prediction.ipynb)
 
-Builds a control-only churn-risk model.
+Builds a churn-risk model using untreated customers.
 
-Models tested:
+Models compared:
 
 - Logistic Regression
 - CatBoost
+- XGBoost
+- LightGBM
 
-CatBoost was selected as the final predictive model.
+LightGBM performed best and was selected as the final churn-risk model.
 
 Held-out performance:
 
 | Metric | Result |
 |---|---:|
-| ROC AUC | 0.881 |
-| Average Precision | 0.184 |
-| Brier Score | 0.0327 |
-| Log Loss | 0.1263 |
+| ROC AUC | 0.841 |
+| Average Precision | 0.187 |
+| Precision | 0.108 |
+| Recall | 0.346 |
+| F1 | 0.165 |
+| F2 | 0.241 |
 
-The final CatBoost model is saved in:
+The final classification threshold was selected using out-of-fold training predictions with a minimum recall requirement of 25%.
+
+The final LightGBM pipeline is saved in:
 
 ```text
-artifacts/catboost_churn_model.cbm
+artifacts/lightgbm_churn_model.joblib
+```
+
+with model metadata saved in:
+
+```text
+artifacts/lightgbm_churn_metadata.json
 ```
 
 ### 03 — Causal uplift modeling
@@ -91,29 +103,44 @@ artifacts/catboost_churn_model.cbm
 
 Compares:
 
-- churn-risk targeting
+- LightGBM churn-risk targeting
 - T-Learner
 - DRLearner
 - CausalForestDML
 - random targeting
 
-The main result is that the causal models produce very different treatment-effect estimates, and the most advanced causal model does not automatically produce the best targeting policy.
+The churn-risk model continues to show strong ranking performance on the causal evaluation sample:
 
-In this dataset, churn-risk targeting produced the strongest observed point estimates across the tested targeting levels, while DRLearner generally performed better than the basic T-Learner.
+| Metric | Result |
+|---|---:|
+| ROC AUC | 0.831 |
+| Average Precision | 0.173 |
 
-That does **not** mean churn risk and treatment response are the same thing. It shows that causal modeling quality and policy quality still need to be evaluated rather than assumed.
+The causal models produce very different treatment-effect estimates.
+
+In the policy comparison, churn-risk targeting produced the highest observed retention uplift at every tested targeting level. The largest point estimate appeared when targeting only the top 5% of customers.
+
+T-Learner produced smaller but consistently positive uplift. DRLearner showed some strong targeting results but was less stable. CausalForestDML produced negative observed uplift at most of the smaller targeting levels.
+
+Random targeting stayed close to zero and served as a useful benchmark.
+
+These results do **not** mean churn risk and treatment response are the same thing. They show that a causal model does not automatically create a better targeting policy.
+
+The smaller targeting groups also contain relatively few customers, so the largest point estimates should be interpreted cautiously.
 
 ## Main takeaway
 
-The core lesson from this analysis and data set is:
+The core idea of the project is:
 
 > **The customer most likely to churn is not necessarily the customer most likely to be saved.**
 
 Prediction and causal targeting answer different questions.
 
-A strong churn model can tell us who is at risk. A causal model tries to tell us whose outcome might actually change because of treatment.
+A churn model estimates who is most at risk. A causal model estimates whose outcome may change because of treatment.
 
-The interesting and useful part is comparing both approaches on the same held-out experiment.
+In this dataset, the churn-risk ranking happened to produce the strongest observed targeting results.
+
+One key takeaway is that a good prediction model is not always the best decision model. Causal models also do not automatically produce better targeting. What matters is how well each approach performs for the actual decision we need to make.
 
 ## Repository structure
 
@@ -123,8 +150,8 @@ beyond-churn/
 ├── LICENSE
 ├── environment.yml
 ├── artifacts/
-│   ├── catboost_churn_model.cbm
-│   └── catboost_churn_metadata.json
+│   ├── lightgbm_churn_model.joblib
+│   └── lightgbm_churn_metadata.json
 └── notebooks/
     ├── 01_data_understanding.ipynb
     ├── 02_churn_prediction.ipynb
@@ -144,6 +171,7 @@ Main libraries include:
 
 - pandas
 - scikit-learn
+- LightGBM
 - CatBoost
 - XGBoost
 - EconML
@@ -156,8 +184,8 @@ Main libraries include:
 The main notebook workflow is complete:
 
 - [x] data audit
-- [x] churn prediction
-- [x] saved CatBoost model
+- [x] churn model comparison
+- [x] saved LightGBM pipeline
 - [x] T-Learner
 - [x] DRLearner
 - [x] CausalForestDML
