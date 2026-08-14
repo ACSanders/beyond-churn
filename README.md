@@ -47,7 +47,7 @@ The dataset contains randomized treatment and control groups, which makes it use
 
 ## Notebooks
 
-### 01 — Data understanding
+### 01 Data understanding
 
 [`notebooks/01_data_understanding.ipynb`](notebooks/01_data_understanding.ipynb)
 
@@ -58,7 +58,7 @@ Covers:
 - treatment/control balance
 - average treatment effect
 
-### 02 — Churn prediction
+### 02 Churn prediction
 
 [`notebooks/02_churn_prediction.ipynb`](notebooks/02_churn_prediction.ipynb)
 
@@ -96,7 +96,7 @@ with model metadata saved in:
 artifacts/lightgbm_churn_metadata.json
 ```
 
-### 03 — Causal uplift modeling
+### 03 Causal uplift modeling
 
 [`notebooks/03_causal_uplift_modeling.ipynb`](notebooks/03_causal_uplift_modeling.ipynb)
 
@@ -127,7 +127,7 @@ The evaluation scores used for the final policy analysis are saved in:
 artifacts/causal_eval_results.csv
 ```
 
-### 04 — Policy value and uncertainty
+### 04 Policy value and uncertainty
 
 [`notebooks/04_policy_value_and_uncertainty.ipynb`](notebooks/04_policy_value_and_uncertainty.ipynb)
 
